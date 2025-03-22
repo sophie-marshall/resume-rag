@@ -50,16 +50,28 @@ class PgClient:
         except Exception as e:
             print(f"Error connecting to Postgres: {str(e)}")
 
-    def semantic_search(
-        self, query_embedding: list, content_embeddig_table: str, n_results: int = 5
-    ):
+    def semantic_search(self, query_embedding: list, table: str, n_results: int = 5):
         # convert query embedidng to the proper format
         query_embedding_str = ", ".join(map(str, query_embedding))
 
         # build query
-        search = f"SELECT document_id, chunk_id, tags, clean_text FROM {content_embeddig_table} ORDER BY embedding <=> '[{query_embedding_str}]' LIMIT {n_results};"
+        search = f"SELECT document_id, chunk_id, tags, clean_text FROM {table} ORDER BY embedding <=> '[{query_embedding_str}]' LIMIT {n_results};"
 
         # establish a connection to the DB
+        conn = self._make_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(search)
+            results = cursor.fetchall()
+            return results
+        except Exception as e:
+            print(f"Error conduting semantic search: {str(e)}")
+            return None
+        finally:
+            cursor.close()
+
+    def lexical_search(self, query: str, table: str, n_results: int = 5):
+        search = f"SELECT document_id, chunk_id, tags, clean_text FROM {table} WHERE search_terms @@ phraseto_tsquery('english', '{query}');"
         conn = self._make_conn()
         try:
             cursor = conn.cursor()
