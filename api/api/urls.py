@@ -18,13 +18,20 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from myapp.views import SampleModelViewSet
+from rag.views import DocumentModelViewSet
 
+## -- SAMPLE ROUTER -- ##
 # create an instance of DRF router to automatically generate RESTful URL patterns
-router = DefaultRouter()
+sample_router = DefaultRouter()
 # connect a viewset to the URL pattern
-router.register(r'samplemodel', SampleModelViewSet)
+sample_router.register(r'samplemodel', SampleModelViewSet)
+
+## -- RAG ROUTER -- ##
+rag_router = DefaultRouter()
+rag_router.register(r'documents', DocumentModelViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include((router.urls, 'myapp'), namespace='myapp'))    
+    path('api/sample', include((sample_router.urls, 'myapp'), namespace='myapp')),    
+    path('api/rag/', include((rag_router.urls, 'rag'), namespace='rag'))    
 ]
